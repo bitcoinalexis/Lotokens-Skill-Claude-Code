@@ -6,6 +6,33 @@ user-invocable: true
 
 Cuando el usuario invoca esta skill, sigue estos pasos en orden:
 
+## Paso 0 — Idioma (solo la primera vez)
+
+Antes de mostrar el menu, determina el idioma de la interfaz de LoTokens:
+
+1. Lee el CLAUDE.md global y busca un marcador de idioma con el formato:
+   `<!-- LoTokens-lang: es -->` o `<!-- LoTokens-lang: en -->`
+   - Linux / macOS: `~/.claude/CLAUDE.md`
+   - Windows: `%USERPROFILE%\.claude\CLAUDE.md`
+2. Si el marcador EXISTE: usa ese idioma (`es` = Español, `en` = English) y NO preguntes. Salta directamente al Paso 1.
+3. Si el marcador NO existe (primera vez): usa AskUserQuestion (single select):
+   - Pregunta: `Idioma / Language`
+   - Opciones:
+     - `Español` — Mostrar LoTokens en español.
+     - `English` — Show LoTokens in English.
+4. Tras la eleccion, escribe el marcador en el CLAUDE.md global para recordarlo en futuras sesiones:
+   - Si la seccion `## LoTokens` ya existe, agrega o actualiza la linea del marcador dentro de ella.
+   - Si no existe, crea la seccion `## LoTokens` con solo el marcador (las reglas se agregan despues, en el Paso 2).
+   - Escribe SIEMPRE el marcador, incluso si despues el usuario elige "Solo esta sesion". El marcador es solo la preferencia de idioma, no las reglas.
+   - Este Write sobre CLAUDE.md esta permitido aunque "Bloquear .md" se active luego (es configuracion inicial).
+
+A partir de aqui, presenta TODOS los textos de LoTokens (preguntas, opciones, descripciones, confirmaciones y bloques de reglas guardados) en el idioma elegido.
+
+- Si el idioma es `es` (Español): usa los textos de los Pasos 1 y 2 tal como estan escritos abajo.
+- Si el idioma es `en` (English): usa las versiones traducidas de la seccion `## English mode` al final de este documento.
+
+---
+
 ## Paso 1 — Menu principal
 
 Usa AskUserQuestion con multiSelect: true.
@@ -43,12 +70,13 @@ Para detectar Windows: verifica si la variable de entorno `USERPROFILE` existe o
 
 ### Si elige guardar (global o proyecto):
 
-Lee el archivo CLAUDE.md si existe. Luego agrega (o reemplaza si ya existe una seccion `## LoTokens`) el siguiente bloque con solo las reglas de las funciones seleccionadas:
+Lee el archivo CLAUDE.md si existe. Luego agrega (o reemplaza si ya existe una seccion `## LoTokens`) el siguiente bloque con solo las reglas de las funciones seleccionadas. Conserva el marcador `<!-- LoTokens-lang: ... -->` dentro de la seccion:
 
 ```
 ## LoTokens
 
 <!-- Generado automaticamente por la skill LoTokens. Edita o elimina esta seccion para cambiar las preferencias. -->
+<!-- LoTokens-lang: es -->
 
 [incluye solo las reglas de las funciones que el usuario selecciono]
 ```
@@ -105,7 +133,7 @@ Si el usuario selecciona "Bloquear .md" y tambien elige guardar (global o proyec
 - Despues de guardar, la regla "Bloquear .md" entra en efecto para el resto de la sesion
 - Esto es el unico caso donde Write sobre un `.md` esta permitido mientras "Bloquear .md" esta activo
 
-Si el usuario elige "Solo esta sesion", omite escribir archivos por completo.
+Si el usuario elige "Solo esta sesion", omite escribir las reglas (pero el marcador de idioma del Paso 0 ya quedo guardado).
 
 ---
 
@@ -165,3 +193,114 @@ Ejemplo sin ninguna seleccion:
 `LoTokens: ninguna funcion activa.`
 
 Aplica las reglas seleccionadas por el resto de la conversacion sin volver a mencionarlas.
+
+---
+
+## English mode
+
+Si en el Paso 0 el idioma elegido es `en`, usa estas versiones en lugar de las de los Pasos 1, 2 y la confirmacion. Al guardar en CLAUDE.md, usa el marcador `<!-- LoTokens-lang: en -->` y escribe los bloques de reglas en ingles que aparecen abajo.
+
+### Step 1 — Main menu
+
+Use AskUserQuestion with multiSelect: true.
+
+Question: "LoTokens — select the features you want to enable:"
+
+Available options (the user may choose several, one, or none):
+
+- **Block .md** — Prevents creating or editing `.md` files during this session (except `CLAUDE.md` and `.md` files inside `memory/`, which are always allowed).
+- **No emojis** — Forbids emojis in all your responses and in the code you generate.
+- **No comments** — Forbids writing comments in generated code (`#`, `//`, `/* */`, `<!-- -->`, docstrings, decorative headers, etc.).
+- **Short reply** — When completing any task (when you use tools), reply only: `Done`
+
+### Step 2 — Persistence
+
+If the user selected at least one feature, use AskUserQuestion (single select):
+
+Question: "Save these preferences for future sessions?"
+
+Options:
+- **This session only** — The rules apply to the WHOLE session until it ends. Nothing is written to disk.
+- **Save globally** — Writes the rules to the global CLAUDE.md (applies in every project).
+- **Save for this project** — Writes the rules to `.claude/CLAUDE.md` (this project only).
+
+Use the same OS path rules and the same "Block .md" + save special case described in the Spanish section.
+
+When saving, write the section keeping the language marker:
+
+```
+## LoTokens
+
+<!-- Auto-generated by the LoTokens skill. Edit or delete this section to change preferences. -->
+<!-- LoTokens-lang: en -->
+
+[include only the rules for the features the user selected]
+```
+
+Rule blocks per feature (write to CLAUDE.md):
+
+**Block .md:**
+```
+### Block .md
+- DO NOT use Write, Edit, or Bash commands that write to `.md` files (`>`, `>>`, `sed -i`, `tee`, `cp`, `mv`, `awk -i inplace`, etc.)
+- Includes README.md and any other Markdown
+- EXCEPTIONS (always allowed):
+  - `CLAUDE.md` (global or project) — to store persistent preferences and instructions
+  - `MEMORY.md` and any `.md` inside a `memory/` directory — for the auto-memory system
+- If another .md write is attempted, reply exactly: `Blocked by LoTokens: .md writing disabled.`
+```
+
+**No emojis:**
+```
+### No emojis
+- DO NOT include emojis in text responses
+- DO NOT include emojis in code comments, strings, or inline documentation
+```
+
+**No comments:**
+```
+### No comments
+- DO NOT write comments of any kind in generated code
+- Includes: `#` (Python, shell, YAML), `//` (JS, TS, Go, Java, C/C++, Rust), `/* */`, `<!-- -->` (HTML/XML), `--` (SQL, Lua), `;` (Lisp, ASM)
+- DO NOT write Python docstrings (`"""..."""` or `'''...'''`) or JSDoc (`/** */`)
+- DO NOT write decorative headers like `# ===== CONFIG =====` or section separators
+- DO NOT write "what this file does" comments at the top of the script
+- DO NOT write end-of-line comments explaining code (`x = 5  # counter`)
+- If you modify an existing file that ALREADY has comments, do not add new ones but leave existing ones intact (unless the user asks to remove them)
+- ONLY EXCEPTION: only write comments if the user EXPLICITLY requests them in that specific message
+- If the language syntax requires text in a certain position (e.g. shebang `#!/usr/bin/env python`), that is NOT a comment and DOES go in
+```
+
+**Short reply:**
+```
+### Short reply
+- A "task" is any action that requires using tools (Write, Edit, Bash, Read, Glob, Grep, etc.)
+- A "question" is any request for information or explanation without using tools
+- When completing a TASK: reply ONLY the word `Done` — no summary, no change list, no context
+- When answering a QUESTION: reply concisely (max 2-3 sentences), without excessive detail
+- If the user explicitly asks you to explain something: it is a question, reply concisely
+- This rule applies to ALL following responses in the session
+```
+
+The session rules (apply immediately) are the same as the Spanish "Reglas por funcion (para esta sesion)" section but follow the English wording above.
+
+### Confirmation to the user (English)
+
+IMPORTANT: If "Short reply" is active, apply that rule to this confirmation too.
+
+If "Short reply" is active — confirmation on a SINGLE line:
+`LoTokens active — [active features separated by |] — [saved/this session]`
+
+If "Short reply" is NOT active — confirmation on one or two lines:
+
+Example with active features and global save:
+`LoTokens active — No emojis | Short reply`
+`Preferences saved to ~/.claude/CLAUDE.md`
+
+Example this session only:
+`LoTokens active — Block .md | No emojis`
+
+Example with no selection:
+`LoTokens: no features active.`
+
+Apply the selected rules for the rest of the conversation without mentioning them again.

@@ -2,7 +2,13 @@
 
 # Skill-LoTokens — Documentacion en Espanol
 
-Una skill para Claude Code que reduce el uso de tokens en tus sesiones. Activa solo lo que necesitas desde un menu interactivo. Guarda tus preferencias para que persistan entre sesiones.
+Una skill para Claude Code que reduce el uso de tokens en tus sesiones. Activa solo lo que necesitas desde un menu interactivo. Guarda tus preferencias para que persistan entre sesiones. Disponible en **español e ingles**.
+
+---
+
+## Seleccion de idioma
+
+La **primera vez** que ejecutas `/lotokens`, la skill te pregunta el idioma de la interfaz (`Español` / `English`). Tu eleccion se guarda como un marcador en el `CLAUDE.md` global, asi que las siguientes veces no se vuelve a preguntar y todo el menu, las opciones y las confirmaciones aparecen en el idioma elegido. Para cambiarlo, borra la linea `<!-- LoTokens-lang: ... -->` de tu `CLAUDE.md` global.
 
 ---
 
@@ -56,6 +62,8 @@ En cualquier sesion de Claude Code, escribe:
 ```
 /lotokens
 ```
+
+La **primera vez** que ejecutes `/lotokens`, Claude te preguntara el idioma de la interfaz (`Español` / `English`). Tu eleccion se guarda como un marcador en el `CLAUDE.md` global, por lo que las siguientes veces no se vuelve a preguntar y todo el menu, las opciones y las confirmaciones aparecen en el idioma elegido. Para cambiarlo, borra la linea `<!-- LoTokens-lang: ... -->` de tu `CLAUDE.md` global.
 
 Aparecera un menu interactivo. Selecciona las funciones que deseas activar.
 
@@ -113,7 +121,13 @@ Desarrollado para [Claude Code](https://claude.ai/code) por AngyLabs.
 
 # Skill-LoTokens
 
-A Claude Code skill to reduce token usage during your sessions. Activate only what you need from an interactive menu. Optionally save your preferences to persist them across sessions.
+A Claude Code skill to reduce token usage during your sessions. Activate only what you need from an interactive menu. Optionally save your preferences to persist them across sessions. Available in **Spanish and English**.
+
+---
+
+## Language selection
+
+The **first time** you run `/lotokens`, the skill asks for the interface language (`Español` / `English`). Your choice is saved as a marker in the global `CLAUDE.md`, so it is not asked again on later runs and the whole menu, options, and confirmations appear in the chosen language. To change it, delete the `<!-- LoTokens-lang: ... -->` line from your global `CLAUDE.md`.
 
 ---
 
@@ -124,7 +138,7 @@ A Claude Code skill to reduce token usage during your sessions. Activate only wh
 | **Block .md** | Prevents Claude from creating or editing any `.md` file (via Write, Edit, or Bash with `>`, `>>`, `sed -i`, `tee`, `cp`, `mv`, etc.). Exceptions: `CLAUDE.md` and `MEMORY.md` / the `memory/` directory remain allowed so persistent preferences and the auto-memory system keep working |
 | **No emojis** | Removes emojis from all responses and generated code |
 | **No comments** | Prevents Claude from writing comments in generated code (`#`, `//`, `/* */`, docstrings, decorative headers, etc.) |
-| **Short response** | After completing any task (tool use), Claude replies only: `Listo` |
+| **Short reply** | After completing any task (tool use), Claude replies only: `Done` (in Spanish mode: `Listo`) |
 
 Each function is independent — activate one, several, or all of them.
 
@@ -167,6 +181,8 @@ In any Claude Code session, type:
 ```
 /lotokens
 ```
+
+The **first time** you run `/lotokens`, Claude asks for the interface language (`Español` / `English`). Your choice is saved as a marker in the global `CLAUDE.md`, so it is not asked again on later runs and the whole menu, options, and confirmations appear in the chosen language. To change it, delete the `<!-- LoTokens-lang: ... -->` line from your global `CLAUDE.md`.
 
 An interactive menu will appear. Select the functions you want to activate.
 
