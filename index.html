@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LoTokens for Codex</title>
+  <style>
+    :root {
+      --bg: #06111d;
+      --bg-2: #0a1727;
+      --panel: rgba(12, 23, 39, 0.86);
+      --panel-2: rgba(18, 31, 52, 0.92);
+      --text: #edf4ff;
+      --muted: #9fb1cf;
+      --line: rgba(255, 255, 255, 0.08);
+      --line-2: rgba(255, 255, 255, 0.14);
+      --accent: #67e8f9;
+      --accent-2: #5eead4;
+      --accent-3: #93c5fd;
+      --shadow: 0 30px 80px rgba(0, 0, 0, 0.34);
+      --ok: #86efac;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "IBM Plex Sans", "Noto Sans", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 12% 10%, rgba(103, 232, 249, 0.16), transparent 26%),
+        radial-gradient(circle at 88% 14%, rgba(147, 197, 253, 0.14), transparent 24%),
+        radial-gradient(circle at 52% 86%, rgba(94, 234, 212, 0.10), transparent 22%),
+        linear-gradient(180deg, var(--bg) 0%, #081321 100%);
+    }
+    a { color: inherit; text-decoration: none; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    .shell {
+      width: min(1160px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(14px);
+      background: rgba(6, 17, 29, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 72px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+    .brand-badge {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      color: #05131f;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 16px 34px rgba(103, 232, 249, 0.22);
+    }
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .lang {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .lang-btn {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      padding: 8px 12px;
+      min-width: 52px;
+      border-radius: 999px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .18s ease, color .18s ease;
+    }
+    .lang-btn.active {
+      background: rgba(103, 232, 249, 0.14);
+      color: var(--text);
+    }
+    .hero {
+      padding: 40px 0 22px;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 22px;
+      align-items: stretch;
+    }
+    .lead, .panel, .section-card, .repo-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      background: linear-gradient(180deg, rgba(18, 31, 52, 0.92), rgba(8, 16, 29, 0.96));
+    }
+    .lead {
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      overflow: hidden;
+      position: relative;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      width: fit-content;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(44px, 8vw, 78px);
+      line-height: .94;
+      letter-spacing: 0;
+    }
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.65;
+      max-width: 62ch;
+    }
+    .hero-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .pill {
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 4px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 48px;
+      padding: 0 18px;
+      border-radius: 12px;
+      border: 1px solid var(--line-2);
+      font-weight: 700;
+      transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+    }
+    .btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    .btn-primary {
+      color: #04131f;
+      border-color: transparent;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      box-shadow: 0 16px 34px rgba(103, 232, 249, 0.18);
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .btn-download {
+      background: linear-gradient(90deg, #c4b5fd, #93c5fd);
+      color: #07121e;
+      border-color: transparent;
+      box-shadow: 0 16px 34px rgba(147, 197, 253, 0.16);
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 6px;
+    }
+    .stat {
+      padding: 14px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .stat strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 20px;
+    }
+    .stat span {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .panel {
+      padding: 18px;
+      display: grid;
+      gap: 16px;
+      align-content: start;
+    }
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: rgba(134, 239, 172, 0.11);
+      color: #c7f9d7;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .repo-card {
+      overflow: hidden;
+    }
+    .repo-top {
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .repo-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+    }
+    .repo-body {
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+    .repo-meta {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .meta-box {
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .meta-box strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+    .meta-box span {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .codebox {
+      padding: 16px;
+      border-radius: 14px;
+      background: #07101b;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #d9e6ff;
+      font: 14px/1.6 Consolas, "SFMono-Regular", monospace;
+      overflow: auto;
+      white-space: pre;
+    }
+    .sections {
+      padding: 18px 0 56px;
+      display: grid;
+      gap: 18px;
+    }
+    .section-card {
+      padding: 22px;
+    }
+    .section-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .section-head h2 {
+      margin: 0 0 8px;
+      font-size: clamp(28px, 4.5vw, 42px);
+      letter-spacing: 0;
+    }
+    .section-head p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+      max-width: 64ch;
+      font-size: 17px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .feature {
+      padding: 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .feature h3 {
+      margin: 0 0 10px;
+      font-size: 20px;
+    }
+    .feature p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .step {
+      padding: 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .step-num {
+      display: inline-grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: rgba(103, 232, 249, 0.14);
+      color: var(--accent);
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+    .step h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+    }
+    .step p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .footer-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 22px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: linear-gradient(90deg, rgba(103, 232, 249, 0.08), rgba(147, 197, 253, 0.06));
+      box-shadow: var(--shadow);
+    }
+    .footer-box p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+      max-width: 62ch;
+    }
+    .icon {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 auto;
+    }
+    [data-lang-content] { display: none; }
+    html[data-lang="es"] [data-lang-content="es"] { display: block; }
+    html[data-lang="en"] [data-lang-content="en"] { display: block; }
+    html[data-lang="es"] [data-lang-inline="es"] { display: inline; }
+    html[data-lang="en"] [data-lang-inline="en"] { display: inline; }
+    [data-lang-inline] { display: none; }
+    @media (max-width: 980px) {
+      .hero-grid, .grid-2, .steps, .stats, .repo-meta { grid-template-columns: 1fr; }
+      .hero { padding-top: 26px; }
+    }
+    @media (max-width: 720px) {
+      .topbar-inner {
+        padding: 10px 0;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .actions { width: 100%; justify-content: flex-start; }
+      .lead, .panel, .section-card { padding: 18px; }
+      .shell { width: min(1160px, calc(100% - 20px)); }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="shell topbar-inner">
+      <div class="brand">
+        <div class="brand-badge">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M7 6.5h8.2a3.3 3.3 0 0 1 0 6.6H7zM7 13.1h9.3a3.2 3.2 0 1 1 0 6.4H7z" fill="currentColor"/>
+          </svg>
+        </div>
+        <span>LoTokens</span>
+      </div>
+      <div class="actions">
+        <div class="lang" aria-label="Language switcher">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 3c4.97 0 9 4.03 9 9s-4.03 9-9 9-9-4.03-9-9 4.03-9 9-9Z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M3.8 9h16.4M3.8 15h16.4M12 3c2.2 2.2 3.5 5.45 3.5 9S14.2 18.8 12 21c-2.2-2.2-3.5-5.45-3.5-9S9.8 5.2 12 3Z" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+          <button class="lang-btn active" type="button" data-set-lang="es">ES</button>
+          <button class="lang-btn" type="button" data-set-lang="en">EN</button>
+        </div>
+        <a class="btn btn-secondary" href="https://github.com/bitcoinalexis/Lotokens-Skill-Claude-Code" target="_blank" rel="noreferrer">
+          <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 .8a11.2 11.2 0 0 0-3.54 21.82c.56.1.76-.24.76-.54v-2.11c-3.09.67-3.74-1.31-3.74-1.31-.5-1.29-1.24-1.63-1.24-1.63-1.01-.69.08-.67.08-.67 1.12.08 1.7 1.14 1.7 1.14.98 1.7 2.58 1.2 3.2.92.1-.72.39-1.2.7-1.48-2.47-.28-5.06-1.24-5.06-5.5 0-1.22.44-2.22 1.15-3-.12-.28-.5-1.43.11-2.98 0 0 .94-.3 3.08 1.14a10.72 10.72 0 0 1 5.6 0c2.14-1.45 3.08-1.14 3.08-1.14.62 1.55.24 2.7.12 2.98.72.78 1.15 1.78 1.15 3 0 4.27-2.6 5.22-5.08 5.5.4.35.76 1.03.76 2.07v3.08c0 .3.2.65.77.54A11.2 11.2 0 0 0 12 .8Z"/>
+          </svg>
+          GitHub
+        </a>
+        <a class="btn btn-secondary" href="https://x.com/bitcoinalexis" target="_blank" rel="noreferrer" aria-label="X">
+          <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M18.9 2H22l-6.77 7.73L23 22h-6.1l-4.78-6.26L6.64 22H3.53l7.24-8.28L1 2h6.25l4.32 5.71L18.9 2Zm-1.07 18.17h1.72L6.31 3.74H4.47l13.36 16.43Z"/>
+          </svg>
+          X
+        </a>
+        <a class="btn btn-secondary" href="https://www.instagram.com/alexisruiz_ag/" target="_blank" rel="noreferrer" aria-label="Instagram">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="3.25" y="3.25" width="17.5" height="17.5" rx="5" stroke="currentColor" stroke-width="1.8"/>
+            <circle cx="12" cy="12" r="4.1" stroke="currentColor" stroke-width="1.8"/>
+            <circle cx="17.4" cy="6.6" r="1.1" fill="currentColor"/>
+          </svg>
+          Instagram
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="hero">
+      <div class="hero-grid">
+        <div class="lead">
+          <div class="eyebrow">
+            <span data-lang-inline="es">Skill para Codex y Claude</span>
+            <span data-lang-inline="en">Skill for Codex and Claude</span>
+          </div>
+          <h1 data-lang-content="es">Menos ruido, menos tokens, más foco para programar</h1>
+          <h1 data-lang-content="en">Less noise, fewer tokens, more focus while you code</h1>
+          <p class="subtitle" data-lang-content="es">
+            LoTokens convierte reglas repetitivas en una skill elegante y portable: respuestas cortas, control sobre Markdown, sin emojis, sin comentarios y persistencia lista para <strong>Codex</strong> mediante <strong>SKILL.md</strong>.
+          </p>
+          <p class="subtitle" data-lang-content="en">
+            LoTokens turns repeated output rules into a portable skill: short replies, Markdown write control, no emojis, no comments, and persistence ready for <strong>Codex</strong> through <strong>SKILL.md</strong>.
+          </p>
+          <div class="hero-pills">
+            <span class="pill">SKILL.md</span>
+            <span class="pill">Codex</span>
+            <span class="pill">Claude</span>
+            <span class="pill">GitHub Pages</span>
+          </div>
+          <div class="cta-row">
+            <a class="btn btn-primary" href="https://github.com/bitcoinalexis/Lotokens-Skill-Claude-Code" target="_blank" rel="noreferrer">
+              <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 .8a11.2 11.2 0 0 0-3.54 21.82c.56.1.76-.24.76-.54v-2.11c-3.09.67-3.74-1.31-3.74-1.31-.5-1.29-1.24-1.63-1.24-1.63-1.01-.69.08-.67.08-.67 1.12.08 1.7 1.14 1.7 1.14.98 1.7 2.58 1.2 3.2.92.1-.72.39-1.2.7-1.48-2.47-.28-5.06-1.24-5.06-5.5 0-1.22.44-2.22 1.15-3-.12-.28-.5-1.43.11-2.98 0 0 .94-.3 3.08 1.14a10.72 10.72 0 0 1 5.6 0c2.14-1.45 3.08-1.14 3.08-1.14.62 1.55.24 2.7.12 2.98.72.78 1.15 1.78 1.15 3 0 4.27-2.6 5.22-5.08 5.5.4.35.76 1.03.76 2.07v3.08c0 .3.2.65.77.54A11.2 11.2 0 0 0 12 .8Z"/>
+              </svg>
+              <span data-lang-inline="es">Abrir repositorio</span>
+              <span data-lang-inline="en">Open repository</span>
+            </a>
+            <a class="btn btn-secondary" href="https://github.com/bitcoinalexis/Lotokens-Skill-Claude-Code/blob/main/SKILL.md" target="_blank" rel="noreferrer">
+              <span data-lang-inline="es">Ver SKILL.md</span>
+              <span data-lang-inline="en">View SKILL.md</span>
+            </a>
+            <a class="btn btn-download" href="https://github.com/bitcoinalexis/Lotokens-Skill-Claude-Code/archive/refs/heads/main.zip">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 4v10m0 0 4-4m-4 4-4-4M5 18h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span data-lang-inline="es">Descarga directa</span>
+              <span data-lang-inline="en">Direct download</span>
+            </a>
+          </div>
+          <div class="stats">
+            <div class="stat">
+              <strong>Codex</strong>
+              <span data-lang-content="es">Adaptada al formato nativo con detección automática y metadata lista para la app.</span>
+              <span data-lang-content="en">Adapted to the native format with automatic detection and app-ready metadata.</span>
+            </div>
+            <div class="stat">
+              <strong>Bilingüe</strong>
+              <span data-lang-content="es">La página y la skill pueden presentarse en español o inglés con una interfaz clara.</span>
+              <span data-lang-content="en">Both the page and the skill can present themselves in Spanish or English with a clear interface.</span>
+            </div>
+            <div class="stat">
+              <strong>Portable</strong>
+              <span data-lang-content="es">Funciona en Windows, Linux y macOS desde la carpeta local de skills de Codex.</span>
+              <span data-lang-content="en">Works on Windows, Linux, and macOS from the local Codex skills folder.</span>
+            </div>
+          </div>
+        </div>
+
+        <aside class="panel">
+          <div class="panel-head">
+            <strong data-lang-content="es">Vista del proyecto</strong>
+            <strong data-lang-content="en">Project view</strong>
+            <span class="badge">
+              <span data-lang-inline="es">Listo para GitHub</span>
+              <span data-lang-inline="en">GitHub ready</span>
+            </span>
+          </div>
+          <div class="repo-card">
+            <div class="repo-top">
+              <div class="repo-title">
+                <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M12 .8a11.2 11.2 0 0 0-3.54 21.82c.56.1.76-.24.76-.54v-2.11c-3.09.67-3.74-1.31-3.74-1.31-.5-1.29-1.24-1.63-1.24-1.63-1.01-.69.08-.67.08-.67 1.12.08 1.7 1.14 1.7 1.14.98 1.7 2.58 1.2 3.2.92.1-.72.39-1.2.7-1.48-2.47-.28-5.06-1.24-5.06-5.5 0-1.22.44-2.22 1.15-3-.12-.28-.5-1.43.11-2.98 0 0 .94-.3 3.08 1.14a10.72 10.72 0 0 1 5.6 0c2.14-1.45 3.08-1.14 3.08-1.14.62 1.55.24 2.7.12 2.98.72.78 1.15 1.78 1.15 3 0 4.27-2.6 5.22-5.08 5.5.4.35.76 1.03.76 2.07v3.08c0 .3.2.65.77.54A11.2 11.2 0 0 0 12 .8Z"/>
+                </svg>
+                <span>bitcoinalexis/Lotokens-Skill-Claude-Code</span>
+              </div>
+              <a href="https://github.com/bitcoinalexis/Lotokens-Skill-Claude-Code" target="_blank" rel="noreferrer">↗</a>
+            </div>
+            <div class="repo-body">
+              <div class="repo-meta">
+                <div class="meta-box">
+                  <strong data-lang-content="es">Skill mínima para Codex</strong>
+                  <strong data-lang-content="en">Minimum Codex skill</strong>
+                  <span>`SKILL.md` + `agents/openai.yaml`</span>
+                </div>
+                <div class="meta-box">
+                  <strong data-lang-content="es">Descarga</strong>
+                  <strong data-lang-content="en">Download</strong>
+                  <span data-lang-content="es">ZIP directo disponible para instalar o bifurcar.</span>
+                  <span data-lang-content="en">Direct ZIP download available to install or fork.</span>
+                </div>
+              </div>
+              <div class="codebox">SKILL.md
+agents/
+  openai.yaml
+lotokens.md
+AGENTS.md
+README.md
+index.html</div>
+              <div class="codebox">~/.codex/skills/lotokens</div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="sections">
+      <div class="section-card">
+        <div class="section-head">
+          <div>
+            <h2 data-lang-content="es">Lo que hace especial a LoTokens</h2>
+            <h2 data-lang-content="en">What makes LoTokens useful</h2>
+            <p data-lang-content="es">La idea es simple: menos fricción al trabajar con agentes de código, más consistencia en las respuestas y una forma limpia de persistir reglas sin repetirlas a mano.</p>
+            <p data-lang-content="en">The idea is simple: less friction while working with coding agents, more consistency in responses, and a clean way to persist rules without rewriting them by hand.</p>
+          </div>
+        </div>
+        <div class="grid-2">
+          <article class="feature">
+            <h3 data-lang-content="es">Control de salida</h3>
+            <h3 data-lang-content="en">Output control</h3>
+            <p data-lang-content="es">Activa respuestas cortas, elimina emojis y evita comentarios en código generado para mantener sesiones compactas y previsibles.</p>
+            <p data-lang-content="en">Enable short replies, remove emojis, and avoid generated code comments to keep sessions compact and predictable.</p>
+          </article>
+          <article class="feature">
+            <h3 data-lang-content="es">Persistencia con AGENTS.md</h3>
+            <h3 data-lang-content="en">Persistence through AGENTS.md</h3>
+            <p data-lang-content="es">La adaptación para Codex cambia la persistencia a `AGENTS.md`, así que el comportamiento queda alineado con el flujo de trabajo actual.</p>
+            <p data-lang-content="en">The Codex adaptation switches persistence to `AGENTS.md`, keeping behavior aligned with the current workflow.</p>
+          </article>
+          <article class="feature">
+            <h3 data-lang-content="es">Compatibilidad dual</h3>
+            <h3 data-lang-content="en">Dual compatibility</h3>
+            <p data-lang-content="es">Conserva el archivo original `lotokens.md` para Claude y añade `SKILL.md` para Codex sin romper el material existente.</p>
+            <p data-lang-content="en">Keeps the original `lotokens.md` for Claude and adds `SKILL.md` for Codex without breaking the existing material.</p>
+          </article>
+          <article class="feature">
+            <h3 data-lang-content="es">Lista para open source</h3>
+            <h3 data-lang-content="en">Ready for open source</h3>
+            <p data-lang-content="es">El repositorio ya puede mostrar la skill, la documentación y la landing pública desde el mismo proyecto en GitHub Pages.</p>
+            <p data-lang-content="en">The repository can now host the skill, the documentation, and the public landing page from the same GitHub Pages project.</p>
+          </article>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-head">
+          <div>
+            <h2 data-lang-content="es">Instalación en tres pasos</h2>
+            <h2 data-lang-content="en">Install in three steps</h2>
+            <p data-lang-content="es">La estructura está pensada para que cualquier usuario descargue, copie y active la skill con el menor número de pasos posible.</p>
+            <p data-lang-content="en">The structure is designed so any user can download, copy, and activate the skill with as few steps as possible.</p>
+          </div>
+        </div>
+        <div class="steps">
+          <article class="step">
+            <div class="step-num">1</div>
+            <h3 data-lang-content="es">Descarga</h3>
+            <h3 data-lang-content="en">Download</h3>
+            <p data-lang-content="es">Usa el botón de descarga directa o clona el repositorio desde GitHub.</p>
+            <p data-lang-content="en">Use the direct download button or clone the repository from GitHub.</p>
+          </article>
+          <article class="step">
+            <div class="step-num">2</div>
+            <h3 data-lang-content="es">Copia</h3>
+            <h3 data-lang-content="en">Copy</h3>
+            <p data-lang-content="es">Guarda la carpeta como `lotokens` dentro de `~/.codex/skills/` o su equivalente en Windows.</p>
+            <p data-lang-content="en">Save the folder as `lotokens` inside `~/.codex/skills/` or the Windows equivalent.</p>
+          </article>
+          <article class="step">
+            <div class="step-num">3</div>
+            <h3 data-lang-content="es">Activa</h3>
+            <h3 data-lang-content="en">Activate</h3>
+            <p data-lang-content="es">Reinicia Codex y llama la skill como `$lotokens` cuando quieras aplicar o guardar reglas.</p>
+            <p data-lang-content="en">Restart Codex and call the skill as `$lotokens` whenever you want to apply or persist rules.</p>
+          </article>
+        </div>
+      </div>
+
+      <div class="footer-box">
+        <div>
+          <strong data-lang-content="es">Repositorio público</strong>
+          <strong data-lang-content="en">Public repository</strong>
+          <p data-lang-content="es">Accede al código, revisa la versión para Codex y descarga el ZIP directamente desde GitHub.</p>
+          <p data-lang-content="en">Access the code, review the Codex version, and download the ZIP directly from GitHub.</p>
+        </div>
+        <div class="cta-row">
+          <a class="btn btn-secondary" href="https://github.com/bitcoinalexis/Lotokens-Skill-Claude-Code/blob/main/SKILL.md" target="_blank" rel="noreferrer">
+            SKILL.md
+          </a>
+          <a class="btn btn-secondary" href="https://x.com/bitcoinalexis" target="_blank" rel="noreferrer">
+            <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M18.9 2H22l-6.77 7.73L23 22h-6.1l-4.78-6.26L6.64 22H3.53l7.24-8.28L1 2h6.25l4.32 5.71L18.9 2Zm-1.07 18.17h1.72L6.31 3.74H4.47l13.36 16.43Z"/>
+            </svg>
+            X
+          </a>
+          <a class="btn btn-secondary" href="https://www.instagram.com/alexisruiz_ag/" target="_blank" rel="noreferrer">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="3.25" y="3.25" width="17.5" height="17.5" rx="5" stroke="currentColor" stroke-width="1.8"/>
+              <circle cx="12" cy="12" r="4.1" stroke="currentColor" stroke-width="1.8"/>
+              <circle cx="17.4" cy="6.6" r="1.1" fill="currentColor"/>
+            </svg>
+            Instagram
+          </a>
+          <a class="btn btn-primary" href="https://github.com/bitcoinalexis/Lotokens-Skill-Claude-Code" target="_blank" rel="noreferrer">
+            <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 .8a11.2 11.2 0 0 0-3.54 21.82c.56.1.76-.24.76-.54v-2.11c-3.09.67-3.74-1.31-3.74-1.31-.5-1.29-1.24-1.63-1.24-1.63-1.01-.69.08-.67.08-.67 1.12.08 1.7 1.14 1.7 1.14.98 1.7 2.58 1.2 3.2.92.1-.72.39-1.2.7-1.48-2.47-.28-5.06-1.24-5.06-5.5 0-1.22.44-2.22 1.15-3-.12-.28-.5-1.43.11-2.98 0 0 .94-.3 3.08 1.14a10.72 10.72 0 0 1 5.6 0c2.14-1.45 3.08-1.14 3.08-1.14.62 1.55.24 2.7.12 2.98.72.78 1.15 1.78 1.15 3 0 4.27-2.6 5.22-5.08 5.5.4.35.76 1.03.76 2.07v3.08c0 .3.2.65.77.54A11.2 11.2 0 0 0 12 .8Z"/>
+            </svg>
+            GitHub
+          </a>
+          <a class="btn btn-download" href="https://github.com/bitcoinalexis/Lotokens-Skill-Claude-Code/archive/refs/heads/main.zip">
+            <span data-lang-inline="es">Descargar ZIP</span>
+            <span data-lang-inline="en">Download ZIP</span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      var root = document.documentElement;
+      var buttons = document.querySelectorAll("[data-set-lang]");
+      function setLang(lang) {
+        root.setAttribute("data-lang", lang);
+        root.setAttribute("lang", lang);
+        buttons.forEach(function (button) {
+          button.classList.toggle("active", button.getAttribute("data-set-lang") === lang);
+        });
+        try {
+          localStorage.setItem("lotokens-lang", lang);
+        } catch (e) {}
+      }
+      var saved = "es";
+      try {
+        saved = localStorage.getItem("lotokens-lang") || "es";
+      } catch (e) {}
+      if (saved !== "es" && saved !== "en") saved = "es";
+      setLang(saved);
+      buttons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          setLang(button.getAttribute("data-set-lang"));
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
