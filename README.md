@@ -9,7 +9,7 @@ Ahora el repositorio incluye:
 - página web estática para GitHub Pages
 
 ## GitHub
-
+- Website: https://bitcoinalexis.github.io/Lotokens-Skill-Claude-Code/
 - Repositorio: [bitcoinalexis/Lotokens-Skill-Claude-Code](https://github.com/bitcoinalexis/Lotokens-Skill-Claude-Code)
 - Skill Codex: [SKILL.md](https://github.com/bitcoinalexis/Lotokens-Skill-Claude-Code/blob/main/SKILL.md)
 
