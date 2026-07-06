@@ -1,6 +1,6 @@
 ---
 name: lotokens
-description: Menu para ahorrar tokens — bloquea escritura de .md, desactiva emojis, activa respuestas cortas. Cada funcion es independiente y activable por separado. Permite guardar preferencias de forma persistente en CLAUDE.md.
+description: Menu para ahorrar tokens — bloquea escritura de .md, desactiva emojis, prohibe comentarios, activa respuestas cortas, optimiza lectura de archivos, bloquea sub-agentes triviales, restringe busquedas web y elimina verificaciones decorativas. Cada funcion es independiente y activable por separado. Permite guardar preferencias de forma persistente en CLAUDE.md.
 user-invocable: true
 ---
 
@@ -41,10 +41,14 @@ Pregunta: "LoTokens — selecciona las funciones que deseas activar:"
 
 Opciones disponibles (el usuario puede elegir varias, una, o ninguna):
 
-- **Bloquear .md** — Impide crear o editar archivos `.md` durante esta sesion (excepto `CLAUDE.md` y `.md` dentro de `memory/`, que siempre estan permitidos).
+- **Bloquear .md** — Impide crear o editar archivos `.md` durante esta sesion (excepto `CLAUDE.md`, `AGENTS.md` y `.md` dentro de `memory/` o `.claude/`, que siempre estan permitidos).
 - **Sin emojis** — Prohibe emojis en todas tus respuestas y en el codigo que generes.
 - **Sin comentarios** — Prohibe escribir comentarios en el codigo generado (`#`, `//`, `/* */`, `<!-- -->`, docstrings, headers decorativos, etc.).
 - **Respuesta corta** — Al completar cualquier tarea (cuando usas herramientas), responde unicamente: `Listo`
+- **Lectura eficiente** — Evita releer archivos en contexto, limita `Read` de archivos grandes y siempre usa `head_limit` en `Grep`/`Glob`.
+- **Sin sub-agentes triviales** — Bloquea `Agent`/`Explore` cuando un `Grep`, `Glob` o `Read` directo basta (un sub-agente consume todo su propio contexto).
+- **Sin web innecesaria** — Usa `WebSearch`/`WebFetch` solo cuando el usuario lo pida o sea estrictamente necesario.
+- **Sin verificaciones decorativas** — No releer ni reejecutar para "confirmar" despues de editar o ejecutar; confia en el resultado de la herramienta.
 
 ---
 
@@ -90,7 +94,9 @@ Reglas por funcion para escribir en CLAUDE.md:
 - Incluye README.md y cualquier otro Markdown
 - EXCEPCIONES (permitidos siempre):
   - `CLAUDE.md` (global o de proyecto) — para guardar preferencias e instrucciones persistentes
+  - `AGENTS.md` — instrucciones del proyecto
   - `MEMORY.md` y cualquier `.md` dentro de un directorio `memory/` — para el sistema auto-memory
+  - Cualquier `.md` dentro del directorio `.claude/` (planes, settings en MD, etc.)
 - Si se intenta escribir otro .md, responde exactamente: `Bloqueado por LoTokens: escritura de .md desactivada.`
 ```
 
@@ -126,6 +132,42 @@ Reglas por funcion para escribir en CLAUDE.md:
 - Esta regla aplica a TODAS las respuestas siguientes en la sesion
 ```
 
+**Lectura eficiente:**
+```
+### Lectura eficiente
+- NO releas archivos que ya estan en tu contexto de la sesion; reutiliza lo que ya cargaste
+- Si debes leer un archivo grande (>500 lineas), usa `offset` y `limit` para leer solo lo necesario
+- Usa SIEMPRE `head_limit` en `Grep` y `Glob` para acotar resultados (ej. `head_limit: 50`)
+- Prefiere `Grep` con patron especifico antes que leer archivos completos
+- Si una sola herramienta resuelve la duda, no lances varias redundantes
+```
+
+**Sin sub-agentes triviales:**
+```
+### Sin sub-agentes triviales
+- NO uses `Agent` ni `Explore` para tareas que un `Grep`, `Glob` o `Read` directo resuelve
+- Un sub-agente consume TODO su propio contexto: reservalo para busquedas amplias o paralelas reales
+- Antes de lanzar un sub-agente, preguntate: ¿puedo resolverlo con una herramienta directa?
+- Si la tarea es un solo lookup (un simbolo, un valor, un archivo), hazlo tu mismo
+```
+
+**Sin web innecesaria:**
+```
+### Sin web innecesaria
+- NO uses `WebSearch` ni `WebFetch` a menos que el usuario lo pida o sea estrictamente necesario
+- Resuelve primero con el codigo, la documentacion local y tu conocimiento
+- Si dudas si vale la pena buscar en web, prefiero NO hacerlo y preguntar al usuario
+```
+
+**Sin verificaciones decorativas:**
+```
+### Sin verificaciones decorativas
+- NO releas un archivo despues de editarlo para "confirmar" que cambio (Edit falla si no coincide)
+- NO reejecutes un comando despues de ver su salida exitosa para "asegurarte"
+- NO repitas en texto lo que ya se hizo; ve directo a la siguiente accion
+- Confia en el resultado que reporta la herramienta
+```
+
 ### Caso especial: "Bloquear .md" + guardar en CLAUDE.md
 
 Si el usuario selecciona "Bloquear .md" y tambien elige guardar (global o proyecto):
@@ -146,7 +188,9 @@ Las siguientes reglas aplican INMEDIATAMENTE desde el momento en que el usuario 
 - Incluye README.md y cualquier otro Markdown
 - EXCEPCIONES (permitidos siempre):
   - `CLAUDE.md` (global o de proyecto) — para guardar preferencias e instrucciones persistentes
+  - `AGENTS.md` — instrucciones del proyecto
   - `MEMORY.md` y cualquier `.md` dentro de un directorio `memory/` — para el sistema auto-memory
+  - Cualquier `.md` dentro del directorio `.claude/` (planes, settings en MD, etc.)
 - Si se intenta, responde exactamente: `Bloqueado por LoTokens: escritura de .md desactivada.`
 
 ### Sin emojis
@@ -170,6 +214,30 @@ Las siguientes reglas aplican INMEDIATAMENTE desde el momento en que el usuario 
 - Al responder una PREGUNTA: responde de forma concisa (maximo 2-3 oraciones), sin detalle excesivo
 - Si el usuario pide explicitamente que expliques algo: es una pregunta, responde concisamente
 - Esta regla aplica a TODAS las respuestas siguientes en la sesion, incluyendo la confirmacion de LoTokens
+
+### Lectura eficiente
+- NO releas archivos que ya estan en tu contexto de la sesion; reutiliza lo que ya cargaste
+- Si debes leer un archivo grande (>500 lineas), usa `offset` y `limit` para leer solo lo necesario
+- Usa SIEMPRE `head_limit` en `Grep` y `Glob` para acotar resultados (ej. `head_limit: 50`)
+- Prefiere `Grep` con patron especifico antes que leer archivos completos
+- Si una sola herramienta resuelve la duda, no lances varias redundantes
+
+### Sin sub-agentes triviales
+- NO uses `Agent` ni `Explore` para tareas que un `Grep`, `Glob` o `Read` directo resuelve
+- Un sub-agente consume TODO su propio contexto: reservalo para busquedas amplias o paralelas reales
+- Antes de lanzar un sub-agente, preguntate: ¿puedo resolverlo con una herramienta directa?
+- Si la tarea es un solo lookup (un simbolo, un valor, un archivo), hazlo tu mismo
+
+### Sin web innecesaria
+- NO uses `WebSearch` ni `WebFetch` a menos que el usuario lo pida o sea estrictamente necesario
+- Resuelve primero con el codigo, la documentacion local y tu conocimiento
+- Si dudas si vale la pena buscar en web, prefiero NO hacerlo y preguntar al usuario
+
+### Sin verificaciones decorativas
+- NO releas un archivo despues de editarlo para "confirmar" que cambio (Edit falla si no coincide)
+- NO reejecutes un comando despues de ver su salida exitosa para "asegurarte"
+- NO repitas en texto lo que ya se hizo; ve directo a la siguiente accion
+- Confia en el resultado que reporta la herramienta
 
 ---
 
@@ -208,10 +276,14 @@ Question: "LoTokens — select the features you want to enable:"
 
 Available options (the user may choose several, one, or none):
 
-- **Block .md** — Prevents creating or editing `.md` files during this session (except `CLAUDE.md` and `.md` files inside `memory/`, which are always allowed).
+- **Block .md** — Prevents creating or editing `.md` files during this session (except `CLAUDE.md`, `AGENTS.md`, and `.md` files inside `memory/` or `.claude/`, which are always allowed).
 - **No emojis** — Forbids emojis in all your responses and in the code you generate.
 - **No comments** — Forbids writing comments in generated code (`#`, `//`, `/* */`, `<!-- -->`, docstrings, decorative headers, etc.).
 - **Short reply** — When completing any task (when you use tools), reply only: `Done`
+- **Efficient reading** — Don't re-read files already in context, limit `Read` of large files, and always use `head_limit` in `Grep`/`Glob`.
+- **No trivial sub-agents** — Block `Agent`/`Explore` when a direct `Grep`, `Glob` or `Read` suffices (a sub-agent consumes its own full context).
+- **No unnecessary web** — Use `WebSearch`/`WebFetch` only when the user asks or it is strictly necessary.
+- **No decorative checks** — Don't re-read or re-run to "confirm" after editing or running; trust the tool result.
 
 ### Step 2 — Persistence
 
@@ -246,7 +318,9 @@ Rule blocks per feature (write to CLAUDE.md):
 - Includes README.md and any other Markdown
 - EXCEPTIONS (always allowed):
   - `CLAUDE.md` (global or project) — to store persistent preferences and instructions
+  - `AGENTS.md` — project instructions
   - `MEMORY.md` and any `.md` inside a `memory/` directory — for the auto-memory system
+  - Any `.md` inside the `.claude/` directory (plans, MD settings, etc.)
 - If another .md write is attempted, reply exactly: `Blocked by LoTokens: .md writing disabled.`
 ```
 
@@ -280,6 +354,42 @@ Rule blocks per feature (write to CLAUDE.md):
 - When answering a QUESTION: reply concisely (max 2-3 sentences), without excessive detail
 - If the user explicitly asks you to explain something: it is a question, reply concisely
 - This rule applies to ALL following responses in the session
+```
+
+**Efficient reading:**
+```
+### Efficient reading
+- DO NOT re-read files already in your session context; reuse what you already loaded
+- If you must read a large file (>500 lines), use `offset` and `limit` to read only what is needed
+- ALWAYS use `head_limit` in `Grep` and `Glob` to bound results (e.g. `head_limit: 50`)
+- Prefer a specific `Grep` pattern over reading whole files
+- If a single tool answers the question, do not launch several redundant ones
+```
+
+**No trivial sub-agents:**
+```
+### No trivial sub-agents
+- DO NOT use `Agent` or `Explore` for tasks a direct `Grep`, `Glob`, or `Read` solves
+- A sub-agent consumes its OWN full context: reserve it for genuinely broad or parallel searches
+- Before launching a sub-agent, ask: can I solve this with a direct tool?
+- If the task is a single lookup (a symbol, a value, a file), do it yourself
+```
+
+**No unnecessary web:**
+```
+### No unnecessary web
+- DO NOT use `WebSearch` or `WebFetch` unless the user asks or it is strictly necessary
+- Solve first with the code, local docs, and your own knowledge
+- If unsure whether a web search is worth it, prefer NOT to do it and ask the user
+```
+
+**No decorative checks:**
+```
+### No decorative checks
+- DO NOT re-read a file after editing to "confirm" it changed (Edit fails if it does not match)
+- DO NOT re-run a command after seeing its successful output to "make sure"
+- DO NOT restate in text what was already done; go straight to the next action
+- Trust the result reported by the tool
 ```
 
 The session rules (apply immediately) are the same as the Spanish "Reglas por funcion (para esta sesion)" section but follow the English wording above.

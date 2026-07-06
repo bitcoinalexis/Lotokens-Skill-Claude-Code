@@ -1,6 +1,6 @@
 ---
 name: lotokens
-description: Reduce token usage and enforce response/output constraints in Codex sessions. Use when the user asks to activate LoTokens, wants shorter replies, wants to block writing Markdown files, disable emojis, disable code comments, or persist these preferences in AGENTS.md for the current project or globally.
+description: Reduce token usage and enforce response/output constraints in Codex sessions. Use when the user asks to activate LoTokens or any of its functions: block writing Markdown files, disable emojis, disable code comments, short replies, efficient file reading, block trivial sub-agents, restrict web searches, or eliminate decorative verifications. Persist these preferences in AGENTS.md for the current project or globally.
 ---
 
 # LoTokens for Codex
@@ -45,6 +45,10 @@ Offer these functions:
 - `Sin emojis` / `No emojis`
 - `Sin comentarios` / `No comments`
 - `Respuesta corta` / `Short reply`
+- `Lectura eficiente` / `Efficient reading`
+- `Sin sub-agentes triviales` / `No trivial sub-agents`
+- `Sin web innecesaria` / `No unnecessary web`
+- `Sin verificaciones decorativas` / `No decorative checks`
 
 The user may enable any combination, including none.
 
@@ -68,8 +72,11 @@ Use the English marker and English rule text when the chosen language is `en`.
 ### Bloquear .md
 - NO uses Write ni Edit sobre archivos con extension `.md`
 - Incluye README.md y cualquier otro Markdown
-- EXCEPCION: puedes editar AGENTS.md unicamente cuando el usuario invoca LoTokens para guardar preferencias
-- Si se intenta escribir otro .md, responde exactamente: `Bloqueado por LoTokens: escritura de .md desactivada.`
+- EXCEPCIONES (no bloquear estos archivos):
+  - `AGENTS.md` y `CLAUDE.md` — instrucciones del proyecto
+  - Cualquier `.md` dentro del directorio `.claude/` (planes, settings en MD, etc.)
+  - Puedes editar `AGENTS.md` y `CLAUDE.md` unicamente cuando el usuario invoca LoTokens para guardar preferencias
+- Si se intenta escribir otro `.md` fuera de las excepciones, responde exactamente: `Bloqueado por LoTokens: escritura de .md desactivada.`
 
 ### Sin emojis
 - NO incluyas emojis en respuestas de texto
@@ -94,13 +101,40 @@ Use the English marker and English rule text when the chosen language is `en`.
 - Si el usuario pide explicitamente que expliques algo, tratala como pregunta
 - Esta regla aplica a todas las respuestas siguientes en la sesion
 
+### Lectura eficiente
+- NO releas archivos que ya estan en tu contexto de la sesion; reutiliza lo que ya cargaste
+- Si debes leer un archivo grande (>500 lineas), usa `offset` y `limit` para leer solo lo necesario
+- Usa SIEMPRE `head_limit` en `Grep` y `Glob` para acotar resultados (ej. `head_limit: 50`)
+- Prefiere `Grep` con patron especifico antes que leer archivos completos
+- Si una sola herramienta resuelve la duda, no lances varias redundantes
+
+### Sin sub-agentes triviales
+- NO uses `Agent` ni `Explore` para tareas que un `Grep`, `Glob` o `Read` directo resuelve
+- Un sub-agente consume TODO su propio contexto: reservalo para busquedas amplias o paralelas reales
+- Antes de lanzar un sub-agente, preguntate: ¿puedo resolverlo con una herramienta directa?
+- Si la tarea es un solo lookup (un simbolo, un valor, un archivo), hazlo tu mismo
+
+### Sin web innecesaria
+- NO uses `WebSearch` ni `WebFetch` a menos que el usuario lo pida o sea estrictamente necesario
+- Resuelve primero con el codigo, la documentacion local y tu conocimiento
+- Si dudas si vale la pena buscar en web, prefiero NO hacerlo y preguntar al usuario
+
+### Sin verificaciones decorativas
+- NO releas un archivo despues de editarlo para "confirmar" que cambio (Edit falla si no coincide)
+- NO reejecutes un comando despues de ver su salida exitosa para "asegurarte"
+- NO repitas en texto lo que ya se hizo; ve directo a la siguiente accion
+- Confia en el resultado que reporta la herramienta
+
 ## Rule blocks in English
 
 ### Block .md
 - DO NOT use Write or Edit on files with the `.md` extension
 - Includes README.md and any other Markdown
-- EXCEPTION: you may edit AGENTS.md only when the user invokes LoTokens to save preferences
-- If another `.md` write is attempted, reply exactly: `Blocked by LoTokens: .md writing disabled.`
+- EXCEPTIONS (do not block these files):
+  - `AGENTS.md` and `CLAUDE.md` — project instructions
+  - Any `.md` inside the `.claude/` directory (plans, MD settings, etc.)
+  - You may edit `AGENTS.md` and `CLAUDE.md` only when the user invokes LoTokens to save preferences
+- If a `.md` write outside the exceptions is attempted, reply exactly: `Blocked by LoTokens: .md writing disabled.`
 
 ### No emojis
 - DO NOT include emojis in text responses
@@ -123,6 +157,30 @@ Use the English marker and English rule text when the chosen language is `en`.
 - When answering a question: reply concisely in at most 2 or 3 sentences
 - If the user explicitly asks for an explanation, treat it as a question
 - This rule applies to all following responses in the session
+
+### Efficient reading
+- DO NOT re-read files already in your session context; reuse what you already loaded
+- If you must read a large file (>500 lines), use `offset` and `limit` to read only what is needed
+- ALWAYS use `head_limit` in `Grep` and `Glob` to bound results (e.g. `head_limit: 50`)
+- Prefer a specific `Grep` pattern over reading whole files
+- If a single tool answers the question, do not launch several redundant ones
+
+### No trivial sub-agents
+- DO NOT use `Agent` or `Explore` for tasks a direct `Grep`, `Glob`, or `Read` solves
+- A sub-agent consumes its OWN full context: reserve it for genuinely broad or parallel searches
+- Before launching a sub-agent, ask: can I solve this with a direct tool?
+- If the task is a single lookup (a symbol, a value, a file), do it yourself
+
+### No unnecessary web
+- DO NOT use `WebSearch` or `WebFetch` unless the user asks or it is strictly necessary
+- Solve first with the code, local docs, and your own knowledge
+- If unsure whether a web search is worth it, prefer NOT to do it and ask the user
+
+### No decorative checks
+- DO NOT re-read a file after editing to "confirm" it changed (Edit fails if it does not match)
+- DO NOT re-run a command after seeing its successful output to "make sure"
+- DO NOT restate in text what was already done; go straight to the next action
+- Trust the result reported by the tool
 
 ## Session behavior
 
